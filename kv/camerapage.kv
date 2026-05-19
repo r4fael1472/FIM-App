@@ -17,6 +17,10 @@
                 on_release: app.mudar_tela("homepage")
 
             Button:
-                text: "Fotografar e Analisar"
+                text: "Analisar"
                 background_color: 0, 0.8, 0, 1
                 on_release: root.capturar_e_analisar() # A função que chama as propriedades físicas
+            Button:
+                text: "Baixar CSV"
+                background_color: 0.2, 0.6, 1, 1 
+                on_release: root.baixar_csv()

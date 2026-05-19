@@ -1,3 +1,13 @@
+import os
+
+os.environ['KIVY_CAMERA'] = 'android'
+os.environ['KIVY_AUDIO'] = 'android'
+
+from kivy.utils import platform
+
+if platform == 'android':
+	os.environ['KIVY_CAMERA'] = 'android'
+
 from kivy.app import App
 from kivy.lang import Builder
 from telas import *
@@ -7,7 +17,6 @@ from kivy.clock import Clock
 import cv2
 from analise import AnaliseTomate
 import csv
-import os
 import threading
 
 
@@ -17,12 +26,19 @@ class MainApp(App):
     def on_start(self):
         if platform == 'android':
             from android.permissions import request_permissions, Permission
+            
+            def callback(permissions, results):
+            	if all(results):
+            		print("Todas as permissões concedidas")
+            	else:
+            		print("Algumas permissões foram negadas")
+            
             # Pedimos permissão para Câmera e Armazenamento (essencial para o CSV)
             request_permissions([
                 Permission.CAMERA,
                 Permission.WRITE_EXTERNAL_STORAGE,
                 Permission.READ_EXTERNAL_STORAGE
-            ])
+            ], callback)
     def build(self):
         return GUI
 
@@ -46,8 +62,10 @@ class MainApp(App):
 
     def processar_arquivos(self, lista_caminhos):
         ppm = 3.0
-        if os.path.exists("calibracao.txt"):
-            with open("calibracao.txt", "r") as f:
+        pasta_privada = App.get_running_app().user_data_dir
+        caminho_calibracao = os.path.join(pasta_privada, "calibracao.txt")
+        if os.path.exists(caminho_calibracao):
+            with open(caminho_calibracao, "r") as f:
                 try:
                     ppm = float(f.read().strip())
                 except ValueError:
@@ -58,8 +76,8 @@ class MainApp(App):
         analise = AnaliseTomate()
         sucessos = 0
 
-        pasta_destino = os.path.dirname(lista_caminhos[0])
-        caminho_csv = os.path.join(pasta_destino, "resultado_lote.csv")
+
+        caminho_csv = os.path.join(pasta_privada, "resultado_lote.csv")
         with open(caminho_csv, "w", encoding="utf-8") as f:
             # Cabeçalho do CSV configurado para relatórios da UFRRJ
             f.write("Arquivo;Largura_cm;Altura_cm;Diam_Geometrico_cm;Esfericidade;Area_Superficial_cm2;Volume_cm3\n")

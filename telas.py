@@ -7,31 +7,23 @@ from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.label import Label
 from kivy.uix.button import Button
 from kivy.uix.camera import Camera
+from kivy.graphics import Rotate, PushMatrix, PopMatrix
+from kivy.clock import Clock
 import numpy as np
 from numpy.ma.core import size
+import plyer
 from plyer import camera
 import os
 from analise import AnaliseTomate
 from datetime import datetime
+from PIL import Image as PILImage
 
 
 class HomePage(Screen):
-    def on_start(self):
-        # NECESSÁRIO PARA O ANDROID AUTORIZAR O USO DA CÂMERA
-        if platform == 'android':  # VERIFICANDO SE O APP ESTÁ RODANDO EM UM ANDROID
-            from android.permissions import request_permissions, Permission
-            permissoes = [
-                Permission.CAMERA,
-                Permission.READ_EXTERNAL_STORAGE,
-                Permission.WRITE_EXTERNAL_STORAGE
-            ]
-            request_permissions(permissoes, self.verificar_permissioes)
-
-    def verificar_permissoes(self, permissoes, status):
-        if all(status):
-            print("Permissões concedidas")
-        else:
-            print("Permissões negadas.")
+    pass
+    
+class InstrucoesPage(Screen):
+    pass
 
 class CalibracaoPage(Screen):
     def __init__(self, **kwargs):
@@ -70,9 +62,17 @@ class CalibracaoPage(Screen):
 
     def on_enter(self):
         # Adicionar widget da câmera
-        if self.testar_camera_fisica():
+        try:
             if self.camera_widget is None:
                 self.camera_widget = Camera(resolution=(640, 480), play=True)
+                
+                with self.camera_widget.canvas.before:
+                    PushMatrix()
+                    self.rot = Rotate(angle=-90, origin=self.camera_widget.center)
+                with self.camera_widget.canvas.after:
+                    PopMatrix()
+                    
+                self.camera_widget.bind(center=self.atualizar_origem_rotacao)
 
                 if 'camera_calibracao_container' in self.ids:
                     self.ids.camera_calibracao_container.add_widget(self.camera_widget)
@@ -81,8 +81,13 @@ class CalibracaoPage(Screen):
 
             else:
                 self.camera_widget.play = True
-        else:
+        except Exception as e:
+            print("Erro ao acessar a câmera: {e}")
             self.exibir_erro_camera()
+            
+    def atualizar_origem_rotacao(self, instance, value):
+    	if hasattr(self, 'rot'):
+    	    self.rot.origin = instance.center
 
     def on_leave(self):
         # Garante que vai tentar desligar só se estiver ligada
@@ -125,7 +130,6 @@ class CalibracaoPage(Screen):
 
         # OpenCV lista todos os objetos contornados encontrados
         contornos, _ = cv2.findContours(bordas, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-
         if contornos:
             # Pegar o maior contorno (objeto de referência)
             maior_contorno = max(contornos, key=cv2.contourArea)
@@ -137,9 +141,10 @@ class CalibracaoPage(Screen):
             if w_px > 20:
                 # Aplicar fórmula de cálculo do PPM
                 ppm = w_px / referencia_mm
-
+                path = App.get_running_app().user_data_dir
+                caminho_calibracao = os.path.join(path, 'calibracao.txt')
                 # Salvar o valor em um arquivo de texto no celular
-                with open("calibracao.txt", "w") as f:
+                with open(caminho_calibracao, "w") as f:
                     f.write(str(ppm))
 
                 print(f"PPM calculado: {ppm:.2f} pixels equivalem a 1 mm.")
@@ -148,8 +153,7 @@ class CalibracaoPage(Screen):
 
             else:
                 print("Objeto muito pequeno ou muito longe da câmera.")
-        else:
-            print("Nenhum objeto encontrado na frente da câmera.")
+        
 
 class CameraPage(Screen):
     # Inicializar uma variável para guardar a câmera
@@ -189,23 +193,48 @@ class CameraPage(Screen):
 
     def on_enter(self):
         # Verificar se a câmera existe
-        if self.testar_camera_fisica():
+        try:
             # Se a câmera física existe e ainda não foi criada no app
             if self.camera_widget is None:
                 print("Hardware detectado. Criando a câmera na tela.")
                 self.camera_widget = Camera(resolution=(640, 480), play=True)
-
+                
+                with self.camera_widget.canvas.before:
+                    PushMatrix()
+                    self.rot = Rotate(angle=-90, origin=self.camera_widget.center)
+                with self.camera_widget.canvas.after:
+                    PopMatrix()
+                    
+                self.camera_widget.bind(center=self.atualizar_origem_rotacao)
+                
                 if 'camera_container' in self.ids:
                     self.ids.camera_container.add_widget(self.camera_widget)
                 else:
                     print("ERRO CRÍTICO: ID 'camera_container' não encontrado no camerapage.kv")
+                    
+            self.camera_widget.play = False
+            Clock.schedule_once(self._ligar_camera, 0.2)
 
-            else:
-                # Se já foi criada antes
-                self.camera_widget.play = True
-
-        else:
+        except Exception as e:
+        #else:
+            print(f"Erro ao acessar a câmera: {e}")
             self.exibir_erro_camera()
+            
+    def _ligar_camera(self, dt):
+        if self.camera_widget:
+            self.camera_widget.play = True
+            print("Câmera reiniciada com sucesso!")
+            
+    def atualizar_origem_rotacao(self, instance, value):
+    	# Atualiza o ponto central da rotação sempre que a câmera se move
+    	if hasattr(self, 'rot'):
+    	    self.rot.origin = instance.center
+    	    
+    def on_pre_leave(self):
+        # Pausar a câmera antes de mudar de tela para não travar
+        if self.camera_widget:
+            self.camera_widget.play = False
+            print("Câmera pausada para liberar memória")
 
     def on_leave(self):
         # Garante que vai tentar desligar só se estiver ligada
@@ -245,6 +274,7 @@ class CameraPage(Screen):
         img_rgba = img_flat.reshape(size[1], size[0], 4)
         img_bgr = cv2.cvtColor(img_rgba, cv2.COLOR_RGBA2BGR)
         img_bgr = cv2.flip(img_bgr, 0)
+        img_bgr = cv2.rotate(img_bgr, cv2.ROTATE_90_CLOCKWISE)
 
         # Analisar Tomate
         analise = AnaliseTomate()
@@ -291,19 +321,76 @@ class CameraPage(Screen):
 
             # Cria o caminho completo e absoluto para o arquivo
             caminho_temp = os.path.join(pasta_privada, "temp_resultado.jpg")
+            
+            # Girar a imagem para visualização
+            #img_rotacionada = cv2.rotate(img_final_para_tela, cv2.ROTATE_90_CLOCKWISE)
 
             # Salva a imagem usando o caminho seguro
             cv2.imwrite(caminho_temp, img_final_para_tela)
 
             # Passar para a tela de resultados
-            tela_res = self.manager.get_screen("resultadospage")
-            tela_res.atualizar_dados(dados_calculados, caminho_temp)
+            try:
+                tela_res = self.manager.get_screen("resultadospage")
+                tela_res.atualizar_dados(dados_calculados, caminho_temp)
 
-            # Mudar a tela para mostrar o relatório ao usuário
-            self.manager.current = "resultadospage"
+                # Mudar a tela para mostrar o relatório ao usuário
+                self.manager.current = "resultadospage"
+            except Exception as e:
+                print(f"Erro ao mudar para tela de resultados: {e}")
         except Exception as e:
             print(f"Erro durante a análise do tomate: {e}")
-
+            
+    def baixar_csv(self):
+        path_privado = App.get_running_app().user_data_dir
+        origem = os.path.join(path_privado, "resultados_analise.csv")
+        
+        if not os.path.exists(origem):
+            print("Erro: O arquivo ainda não existe. Faça uma análise primeiro.")
+            return
+        
+        if platform == 'android':
+            try:
+                from jnius import autoclass, cast
+                
+                # Classes do Android para gerenciar o armazenamento
+                ContentValues = autoclass('android.content.ContentValues')
+                MediaStore = autoclass('android.provider.MediaStore$Downloads')
+                Environment = autoclass('android.os.Environment')
+                PythonActivity = autoclass('org.kivy.android.PythonActivity')
+                FileInputStream = autoclass('java.io.FileInputStream')
+                
+                # Define as propriedades do arquivo "Download"
+                values = ContentValues()
+                values.put("_display_name", "relatorio_tomates_ufrrj.csv")
+                values.put("mime_type", "text/csv")
+                values.put("relative_path", Environment.DIRECTORY_DOWNLOADS)
+                
+                # Insere o arquivo no banco de dados do Android
+                resolver = PythonActivity.mActivity.getContentResolver()
+                uri = resolver.insert(MediaStore.EXTERNAL_CONTENT_URI, values)
+                
+                # Copia os bits da pasta interna para a pasta pública
+                out_stream = resolver.openOutputStream(uri)
+                in_stream = FileInputStream(origem)
+                
+                buffer = bytearray(1024)
+                while True:
+                    num_read = in_stream.read(buffer)
+                    if num_read <= 0:
+                        break
+                    out_stream.write(buffer, 0, num_read)
+                    
+                out_stream.close()
+                in_stream.close()
+                print("O arquivo está na pasta Download.")
+                
+            except Exception as e:
+                print(f"Erro ao baixar arquivo: {e}")
+                
+        else:
+            # Caminho para teste no computador
+            print(f"No Desktop, o arquivo está em: {e}")
+            
 
 class ResultadosPage(Screen):
     # Variável para guardar temporariamente os dados antes de salvar no CSV
@@ -313,14 +400,14 @@ class ResultadosPage(Screen):
         self.dados_atuais = dados_analise
 
         # Atualizando os Labels do Kivy (resultados.kv)
-        if 'label_formato' in self.ids:
-            self.ids.label_formato.text = str(dados_analise.get('Formato', '---'))
+        if 'label_area' in self.ids:
+            self.ids.label_area.text = f"{dados_analise.get('Area_Superficial', 0):.2f} cm2"
         if 'label_diam_geo' in self.ids:
             self.ids.label_diam_geo.text = f"{dados_analise.get('Diam_Geometrico', 0):.2f} cm"
         if 'label_esfericidade' in self.ids:
             self.ids.label_esfericidade.text = f"{dados_analise.get('Esfericidade', 0):.2f}"
         if 'label_volume' in self.ids:
-            self.ids.label_volume.text = f"{dados_analise.get('Volume_cm3', 0):.2f} cm³"
+            self.ids.label_volume.text = f"{dados_analise.get('Volume_cm3', 0):.2f} cm3"
 
         # Atualizando a imagem com o contorno verde
         if 'img_resultado_final' in self.ids:
@@ -333,7 +420,8 @@ class ResultadosPage(Screen):
             print("Erro: Nenhum dado disponível para salvar.")
             return
         # Definir o nome do arquivo
-        arquivo_csv = "resultados_analise.csv"
+        path = App.get_running_app().user_data_dir
+        arquivo_csv = os.path.join(path, "resultados_analise.csv")
 
         # Verificar se o arquivo já existe para saber se precisa criar o cabeçalho
         verificacao_cabecalho = not os.path.exists(arquivo_csv)

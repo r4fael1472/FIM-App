@@ -17,19 +17,20 @@
 
         # Menu de Opções
         Button:
-            text: "1. Calibrar Sistema (PPM)"
+            text: "Instruções"
+            font_size: '18sp'
+            on_release: app.mudar_tela("instrucoespage")
+            
+        Button:
+            text: "Calibrar Sistema (PPM)"
             font_size: '18sp'
             on_release: app.mudar_tela("calibracaopage")
 
         Button:
-            text: "2. Analisar por Câmera"
+            text: "Analisar por Câmera"
             font_size: '18sp'
             on_release: app.mudar_tela("camerapage")
 
-        Button:
-            text: "3. Processamento em Lote (Pasta)"
-            font_size: '18sp'
-            on_release: app.selecionar_arquivos()
 
         # Espaçador no final
         Widget:
