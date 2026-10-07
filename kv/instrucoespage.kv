@@ -1,169 +1,263 @@
 <InstrucoesPage>:
-    name: 'instrucoes'
+    name: 'instrucoespage'
 
     BoxLayout:
         orientation: 'vertical'
-        padding: ['20dp', '20dp', '20dp', '20dp']
-        spacing: '15dp'
+        spacing: 0
 
-        # Canvas para definir o fundo escuro padrão do aplicativo
         canvas.before:
             Color:
-                rgba: 0.1, 0.1, 0.1, 1
+                rgba: 0.95, 0.96, 0.96, 1
             Rectangle:
                 pos: self.pos
                 size: self.size
 
-        # Cabeçalho da Tela
-        Label:
-            text: "Instruções de Uso"
-            font_size: '26sp'
-            bold: True
-            size_hint_y: None
-            height: '40dp'
-            color: 1, 1, 1, 1
+        
+        BoxLayout:
+            orientation: 'horizontal'
+            size_hint_y: 0.12
+            padding: [15, 10, 15, 10]
+            spacing: 12
 
-        # Área de Conteúdo Rolável
-        ScrollView:
-            do_scroll_x: False
-            do_scroll_y: True
-            bar_width: '4dp'
-            bar_color: 0.2, 0.6, 1, 1  # Cor azul da barra de rolagem
+            canvas.before:
+                Color:
+                    rgba: 0.38, 0.55, 0.28, 1
+                Rectangle:
+                    pos: self.pos
+                    size: self.size
 
             BoxLayout:
                 orientation: 'vertical'
+                alignment: 'center'
+
+                Label:
+                    text: "Sistema de Análise de Frutos"
+                    font_size: '18sp'
+                    bold: True
+                    halign: 'center'
+                    valign: 'bottom'
+                    text_size: self.size
+                    color: 1, 1, 1, 1
+
+                Label:
+                    text: "FIM"
+                    font_size: '12sp'
+                    halign: 'center'
+                    valign: 'top'
+                    text_size: self.size
+                    color: 0.9, 0.95, 0.9, 1
+
+        
+        BoxLayout:
+            orientation: 'vertical'
+            padding: ['20dp', '10dp', '20dp', '10dp']
+            spacing: '10dp'
+            size_hint_y: 0.79
+
+            Label:
+                text: "Instruções de Uso"
+                font_size: '22sp'
+                bold: True
                 size_hint_y: None
-                height: self.minimum_height
-                spacing: '20dp'
-                padding: [0, '10dp', 0, '20dp']
+                height: '40dp'
+                color: 0.18, 0.49, 0.19, 1
 
-                # --- Passo 1 ---
+            ScrollView:
+                do_scroll_x: False
+                do_scroll_y: True
+                bar_width: '4dp'
+                bar_color: 0.18, 0.49, 0.19, 1 
+
                 BoxLayout:
                     orientation: 'vertical'
                     size_hint_y: None
                     height: self.minimum_height
-                    spacing: '5dp'
+                    spacing: '20dp'
+                    padding: [0, '10dp', 0, '20dp']
 
-                    Label:
-                        text: "1. Preparação do Ambiente"
-                        font_size: '18sp'
-                        bold: True
-                        halign: 'left'
-                        valign: 'middle'
-                        size_hint_x: 1
+                    
+                    BoxLayout:
+                        orientation: 'vertical'
                         size_hint_y: None
-                        height: '25dp'
-                        text_size: self.size
-                        color: 0.2, 0.6, 1, 1 # Destaque em azul
+                        height: self.minimum_height
+                        spacing: '5dp'
 
-                    Label:
-                        text: "Posicione o fruto sobre uma superfície plana e de cor contrastante (preferencialmente um fundo branco ou neutro).\nCertifique-se de que o local esteja bem iluminado para evitar sombras excessivas que possam afetar a segmentação digital."
-                        font_size: '15sp'
-                        halign: 'left'
-                        valign: 'top'
-                        size_hint_x: 1
+                        Label:
+                            text: "1. Preparação do Ambiente"
+                            font_size: '16sp'
+                            bold: True
+                            halign: 'left'
+                            valign: 'middle'
+                            size_hint_x: 1
+                            size_hint_y: None
+                            height: '25dp'
+                            text_size: self.size
+                            color: 0, 0, 0, 1
+
+                        Label:
+                            text: "Posicione o fruto sobre uma superfície plana e de cor contrastante (preferencialmente um fundo branco ou neutro). Certifique-se de que o local esteja bem iluminado para evitar sombras excessivas que possam afetar a segmentação digital."
+                            font_size: '14sp'
+                            halign: 'justify'
+                            valign: 'top'
+                            size_hint_x: 1
+                            size_hint_y: None
+                            height: self.texture_size[1]
+                            text_size: self.width, None
+                            color: 0.2, 0.2, 0.2, 1
+
+                    
+                    BoxLayout:
+                        orientation: 'vertical'
                         size_hint_y: None
-                        height: self.texture_size[1]
-                        text_size: self.width, None
-                        color: 0.9, 0.9, 0.9, 1
+                        height: self.minimum_height
+                        spacing: '5dp'
 
-                # --- Passo 2 ---
+                        Label:
+                            text: "2. Objeto de Referência (Calibração)"
+                            font_size: '16sp'
+                            bold: True
+                            halign: 'left'
+                            valign: 'middle'
+                            size_hint_x: 1
+                            size_hint_y: None
+                            height: '25dp'
+                            text_size: self.size
+                            color: 0, 0, 0, 1
+
+                        Label:
+                            text: "Para que o sistema converta a imagem de pixels para milímetros corretamente, acesse a tela de Calibração e defina o diâmetro em milímetros do objeto de referência, o qual, no momento da captura, deve ser posicionado ao lado do fruto."
+                            font_size: '14sp'
+                            halign: 'justify'
+                            valign: 'top'
+                            size_hint_x: 1
+                            size_hint_y: None
+                            height: self.texture_size[1]
+                            text_size: self.width, None
+                            color: 0.2, 0.2, 0.2, 1
+
+                    
+                    BoxLayout:
+                        orientation: 'vertical'
+                        size_hint_y: None
+                        height: self.minimum_height
+                        spacing: '5dp'
+
+                        Label:
+                            text: "3. Captura e Análise"
+                            font_size: '16sp'
+                            bold: True
+                            halign: 'left'
+                            valign: 'middle'
+                            size_hint_x: 1
+                            size_hint_y: None
+                            height: '25dp'
+                            text_size: self.size
+                            color: 0, 0, 0, 1
+
+                        Label:
+                            text: "Aponte a câmera paralelamento aos alvos da captura (fruto e objeto de referência) de forma que o sistema libere a análise. Em seguida, toque em 'Analisar'."
+                            font_size: '14sp'
+                            halign: 'justify'
+                            valign: 'top'
+                            size_hint_x: 1
+                            size_hint_y: None
+                            height: self.texture_size[1]
+                            text_size: self.width, None
+                            color: 0.2, 0.2, 0.2, 1
+
+                   
+                    BoxLayout:
+                        orientation: 'vertical'
+                        size_hint_y: None
+                        height: self.minimum_height
+                        spacing: '5dp'
+
+                        Label:
+                            text: "4. Exportação dos Dados"
+                            font_size: '16sp'
+                            bold: True
+                            halign: 'left'
+                            valign: 'middle'
+                            size_hint_x: 1
+                            size_hint_y: None
+                            height: '25dp'
+                            text_size: self.width, None
+                            color: 0, 0, 0, 1
+
+                        Label:
+                            text: "Na tela de resultados, você poderá visualizar algumas propriedades físicas calculadas. Para salvar o relatório, toque em 'Salvar Dados'. Para gerar um arquivo estruturado direto na pasta Downloads do seu Android, acesse a tela de Download através do ícone no rodapé e toque em 'Baixar Planilha (.csv)'."
+                            font_size: '14sp'
+                            halign: 'justify'
+                            valign: 'top'
+                            size_hint_x: 1
+                            size_hint_y: None
+                            height: self.texture_size[1]
+                            text_size: self.width, None
+                            color: 0.2, 0.2, 0.2, 1
+
+        
+        BoxLayout:
+            orientation: 'horizontal'
+            size_hint_y: 0.09
+            padding: 20
+
+            canvas.before:
+                Color:
+                    rgba: 0.38, 0.55, 0.28, 1 
+                Rectangle:
+                    pos: self.pos
+                    size: self.size
+
+            
+            Button:
+                background_normal: ''
+                background_color: 0, 0, 0, 0
+                on_release: app.mudar_tela("downloadpage")
+
                 BoxLayout:
                     orientation: 'vertical'
-                    size_hint_y: None
-                    height: self.minimum_height
-                    spacing: '5dp'
+                    pos: self.parent.pos
+                    size: self.parent.size
+                    padding: 5
 
-                    Label:
-                        text: "2. Objeto de Referência (Calibração)"
-                        font_size: '18sp'
-                        bold: True
-                        halign: 'left'
-                        valign: 'middle'
-                        size_hint_x: 1
-                        size_hint_y: None
-                        height: '25dp'
-                        text_size: self.size
-                        color: 0.2, 0.6, 1, 1
+                    Image:
+                        source: 'imagens/baixar.png'
+                        size_hint_y: 0.4
+                        allow_stretch: True
+                        keep_ratio: True
 
-                    Label:
-                        text: "Para que o sistema converta a imagem de pixels para milímetros (PPM), coloque um objeto de referência conhecido\n (como uma moeda) ao lado do fruto, no mesmo plano de captura."
-                        font_size: '15sp'
-                        halign: 'left'
-                        valign: 'top'
-                        size_hint_x: 1
-                        size_hint_y: None
-                        height: self.texture_size[1]
-                        text_size: self.width, None
-                        color: 0.9, 0.9, 0.9, 1
+            
+            Button:
+                background_normal: ''
+                background_color: 0, 0, 0, 0
+                on_release: app.mudar_tela("homepage")
 
-                # --- Passo 3 ---
                 BoxLayout:
                     orientation: 'vertical'
-                    size_hint_y: None
-                    height: self.minimum_height
-                    spacing: '5dp'
+                    pos: self.parent.pos
+                    size: self.parent.size
+                    padding: 5
 
-                    Label:
-                        text: "3. Captura e Análise"
-                        font_size: '18sp'
-                        bold: True
-                        halign: 'left'
-                        valign: 'middle'
-                        size_hint_x: 1
-                        size_hint_y: None
-                        height: '25dp'
-                        text_size: self.size
-                        color: 0.2, 0.6, 1, 1
+                    Image:
+                        source: 'imagens/botao_inicio.png'
+                        size_hint_y: 0.4
+                        allow_stretch: True
+                        keep_ratio: True
 
-                    Label:
-                        text: "Aponte a câmera paralelamente ao fruto para evitar distorções de perspectiva. Toque em 'Capturar e Analisar'."
-                        font_size: '15sp'
-                        halign: 'left'
-                        valign: 'top'
-                        size_hint_x: 1
-                        size_hint_y: None
-                        height: self.texture_size[1]
-                        text_size: self.width, None
-                        color: 0.9, 0.9, 0.9, 1
+            
+            Button:
+                background_normal: ''
+                background_color: 0, 0, 0, 0
+                on_release: app.mudar_tela("instrucoespage")
 
-                # --- Passo 4 ---
                 BoxLayout:
                     orientation: 'vertical'
-                    size_hint_y: None
-                    height: self.minimum_height
-                    spacing: '5dp'
+                    pos: self.parent.pos
+                    size: self.parent.size
+                    padding: 5
 
-                    Label:
-                        text: "4. Exportação dos Dados"
-                        font_size: '18sp'
-                        bold: True
-                        halign: 'left'
-                        valign: 'middle'
-                        size_hint_x: 1
-                        size_hint_y: None
-                        height: '25dp'
-                        text_size: self.width, None
-                        color: 0.2, 0.6, 1, 1
-
-                    Label:
-                        text: "Na tela de resultados, você poderá visualizar algumas propriedades físicas calculadas.\nPara salvar o relatório, clique em 'Baixar CSV' para gerar um arquivo estruturado direto na pasta Downloads do seu Android."
-                        font_size: '15sp'
-                        halign: 'left'
-                        valign: 'top'
-                        size_hint_x: 1
-                        size_hint_y: None
-                        height: self.texture_size[1]
-                        text_size: self.width, None
-                        color: 0.9, 0.9, 0.9, 1
-
-        # Botão de Voltar ao Menu
-        Button:
-            text: "Voltar para o Menu"
-            font_size: '18sp'
-            bold: True
-            size_hint_y: None
-            height: '50dp'
-            background_color: 0.2, 0.6, 1, 1  # Mantendo o padrão estético azul do app
-            background_normal: ''
-            on_release: app.mudar_tela("homepage")
+                    Image:
+                        source: 'imagens/livro.png'
+                        size_hint_y: 0.4
+                        allow_stretch: True
+                        keep_ratio: True

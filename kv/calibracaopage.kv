@@ -1,49 +1,170 @@
 <CalibracaoPage>:
-    name: 'calibracao'
-
+    name: "calibracaopage"
+    
     BoxLayout:
         orientation: 'vertical'
-        padding: 10
-        spacing: 10
+        spacing: 0
 
-        Label:
-            text: "Calibração de Medidas"
-            font_size: '20sp'
-            size_hint_y: 0.1
+        canvas.before:
+            Color:
+                rgba: 0.95, 0.96, 0.96, 1
+            Rectangle:
+                pos: self.pos
+                size: self.size
 
-        BoxLayout:
-            id: camera_calibracao_container
-            size_hint_y: 0.6
-
+        # -------------------------------------------------------------
+        # 1. CABEÇALHO SUPERIOR 
+        # -------------------------------------------------------------
         BoxLayout:
             orientation: 'horizontal'
-            size_hint_y: 0.15
-            spacing: 10
+            size_hint_y: 0.12
+            padding: [15, 10, 15, 10]
+            spacing: 12
 
+            canvas.before:
+                Color:
+                    rgba: 0.38, 0.55, 0.28, 1 
+                Rectangle:
+                    pos: self.pos
+                    size: self.size
+
+            BoxLayout:
+                orientation: 'vertical'
+                alignment: 'center'
+
+                Label:
+                    text: "Sistema de Análise de Frutos"
+                    font_size: '18sp'
+                    bold: True
+                    halign: 'center'
+                    valign: 'bottom'
+                    text_size: self.size
+                    color: 1, 1, 1, 1
+
+                Label:
+                    text: "FIM"
+                    font_size: '12sp'
+                    halign: 'center'
+                    valign: 'top'
+                    text_size: self.size
+                    color: 0.9, 0.95, 0.9, 1
+
+
+        BoxLayout:
+            orientation: "vertical"
+            padding: dp(30)
+            spacing: dp(15)
+            size_hint_y: 0.79 
+            
+            Widget:
+                size_hint_y: 0.1
+                
             Label:
-                text: "Tamanho da Referência (mm):"
-                size_hint_x: 0.6
-
+                text: "Calibração"
+                font_size: '22sp'
+                bold: True
+                color: 0, 0, 0, 1
+                size_hint_y: None
+                height: dp(40)
+                
+            Label:
+                text: "Digite o diâmetro (em mm) do objeto de\nreferência que você utilizará nas fotos:"
+                halign: "center"
+                color: 0.2, 0.2, 0.2, 1
+                size_hint_y: None
+                height: dp(50)
+                
             TextInput:
-                id: input_referencia
-                text: "25.0" # Padrão: moeda de 1 real (aprox. 25mm a 27mm)
+                id: input_or
+                hint_text: "Ex: 27.0"
+                input_type: "number"
                 multiline: False
-                input_filter: 'float'
-                size_hint_x: 0.4
-                font_size: '18sp'
+                font_size: '20sp'
+                halign: 'center'
+                size_hint_y: None
+                height: dp(45)
+                size_hint_x: 0.5
+                pos_hint: {'center_x': 0.5}
+                
+            Widget:
+                size_hint_y: 0.1
+                
+            Button:
+                text: "Salvar"
+                size_hint: None, None
+                size: dp(150), dp(45)
+                pos_hint: {'center_x': 0.5}
+                background_normal: ''
+                background_color: 0.18, 0.49, 0.19, 1
+                bold: True
+                on_release: root.salvar_calibracao(input_or.text)
+                
+            Widget:
+                size_hint_y: 0.4
+
 
         BoxLayout:
             orientation: 'horizontal'
-            size_hint_y: 0.15
-            spacing: 10
+            size_hint_y: 0.09
+            padding: 20
+
+            canvas.before:
+                Color:
+                    rgba: 0.38, 0.55, 0.28, 1 
+                Rectangle:
+                    pos: self.pos
+                    size: self.size
+
 
             Button:
-                text: "Voltar"
-                background_color: 1, 0, 0, 0.8
+                background_normal: ''
+                background_color: 0, 0, 0, 0
+                on_release: app.mudar_tela("downloadpage")
+
+                BoxLayout:
+                    orientation: 'vertical'
+                    pos: self.parent.pos
+                    size: self.parent.size
+                    padding: 5
+
+                    Image:
+                        source: 'imagens/baixar.png'
+                        size_hint_y: 0.4
+                        allow_stretch: True
+                        keep_ratio: True
+
+
+            Button:
+                background_normal: ''
+                background_color: 0, 0, 0, 0
                 on_release: app.mudar_tela("homepage")
 
+                BoxLayout:
+                    orientation: 'vertical'
+                    pos: self.parent.pos
+                    size: self.parent.size
+                    padding: 5
+
+                    Image:
+                        source: 'imagens/botao_inicio.png'
+                        size_hint_y: 0.4
+                        allow_stretch: True
+                        keep_ratio: True
+
 
             Button:
-                text: "Calibrar"
-                background_color: 0, 0.5, 1, 1 # Azul
-                on_release: root.realizar_calibracao()
+                background_normal: ''
+                background_color: 0, 0, 0, 0
+                on_release: app.mudar_tela("instrucoespage")
+
+                BoxLayout:
+                    orientation: 'vertical'
+                    pos: self.parent.pos
+                    size: self.parent.size
+                    padding: 5
+
+                    Image:
+                        source: 'imagens/livro.png'
+                        size_hint_y: 0.4
+                        allow_stretch: True
+                        keep_ratio: True

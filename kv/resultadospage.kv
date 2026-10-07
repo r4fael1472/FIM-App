@@ -14,7 +14,7 @@
 
         Image:
             id: img_resultado_final
-            source: '' # Preenchido via Python com o frame processado
+            source: '' # Preenchido pelo Python
             allow_stretch: True
             keep_ratio: True
             size_hint_y: 0.4
@@ -32,13 +32,6 @@
                 id: label_area
                 text: "--- cm2"
                 bold: True
-
-            Label:
-                text: "Diâmetro Geométrico:"
-
-            Label:
-                id: label_diam_geo
-                text: "--- cm"
 
             Label:
                 text: "Esfericidade:"
@@ -63,9 +56,9 @@
             Button:
                 text: "Descartar"
                 background_color: 1, 0, 0, 0.8
-                on_release: app.mudar_tela("camerapage")
+                on_release: app.mudar_tela("camerapage", True)
 
             Button:
                 text: "Salvar Dados (.csv)"
                 background_color: 0, 0.8, 0, 1
-                on_release: root.salvar_csv() # Salva e volta pra home
+                on_release: root.salvar_csv()

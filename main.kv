@@ -3,13 +3,16 @@
 #:include kv/calibracaopage.kv
 #:include kv/resultadospage.kv
 #:include kv/instrucoespage.kv
+#:include kv/downloadpage.kv
 #:import utils kivy.utils
+#:import NoTransition kivy.uix.screenmanager.NoTransition
 
 FloatLayout:
     ScreenManager:
         pos_hint: {"right": 1, "top": 1}
         size_hint: 1, 1
         id: screen_manager
+        transition: NoTransition()
         HomePage:
             name: "homepage"
             id: homepage
@@ -25,3 +28,6 @@ FloatLayout:
         InstrucoesPage:
             name: "instrucoespage"
             id: instrucoespage
+        DownloadPage:
+            name: "downloadpage"
+            id: downloadpage

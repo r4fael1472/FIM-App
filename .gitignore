@@ -1,7 +1,14 @@
 .buildozer/
 bin/
+
 __pycache__/
 *.pyc
+*.pyo
+*.pyd
 
 venv/
 env/
+.env
+
+.DS_Store
+Thumbs.db

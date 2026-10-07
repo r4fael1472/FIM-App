@@ -1,7 +1,7 @@
 [app]
 
 # (str) Title of your application
-title = Analisador de Tomates
+title = FIM
 
 # (str) Package name
 package.name = analisadortomate
@@ -44,10 +44,11 @@ requirements = python3,kivy==2.3.0, opencv, numpy, pillow, plyer
 # requirements.source.kivy = ../../kivy
 
 # (str) Presplash of the application
-#presplash.filename = %(source.dir)s/data/presplash.png
+presplash.filename = %(source.dir)s/imagens/loading_page_image.png
+
 
 # (str) Icon of the application
-#icon.filename = %(source.dir)s/data/icon.png
+icon.filename = %(source.dir)s/imagens/icone_app_tcc.png
 
 # (list) Supported orientations
 # Valid options are: landscape, portrait, portrait-reverse or landscape-reverse
@@ -81,7 +82,9 @@ fullscreen = 0
 # red, blue, green, black, white, gray, cyan, magenta, yellow, lightgray,
 # darkgray, grey, lightgrey, darkgrey, aqua, fuchsia, lime, maroon, navy,
 # olive, purple, silver, teal.
-#android.presplash_color = #FFFFFF
+android.presplash_color = #FFFFFF
+
+android.presplash_scale_mode = scale_inside
 
 # (string) Presplash animation using Lottie format.
 # see https://lottiefiles.com/ for examples and https://airbnb.design/lottie/

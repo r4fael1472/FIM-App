@@ -1,93 +1,162 @@
-
 import cv2
 import numpy as np
 import math
 
-class AnaliseTomate:
-    def __init__(self):
-        self.baixo_vermelho1 = np.array([0, 70, 40]) #DEFINE OS LIMITES INFERIORES DO HSV
-        self.alto_vermelho1 = np.array([10, 255, 255]) #DEFINE OS LIMITES SUPERIORES DO HSV
-        self.baixo_vermelho2 = np.array([160, 70, 40]) #DEFINE OS LIMITES INFERIORES DO HSV
-        self.alto_vermelho2 = np.array([179, 255, 255]) #DEFINE OS LIMITES SUPERIORES DO HSV
 
-        self.kernel_open = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5))
-        self.kernel_close = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (21, 21))
+class AnaliseFruto:
+    def __init__(self, area_minima_px=300, kernel_blur=(5, 5), kernel_close_tam=15, kernel_dilate_tam=3):
+
+        self.area_minima_px = area_minima_px
+
+        self.kernel_blur = kernel_blur
+        self.kernel_close = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (kernel_close_tam, kernel_close_tam))
+        self.kernel_dilate = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (kernel_dilate_tam, kernel_dilate_tam))
 
     def segmentacao(self, img):
-        blur = cv2.GaussianBlur(img, (7, 7), 0)
-        hsv_img = cv2.cvtColor(blur, cv2.COLOR_BGR2HSV) #CONVERTE A IMAGEM DE BGR PARA HSV
+        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+        blur = cv2.GaussianBlur(gray, self.kernel_blur, 0)
 
-        mascara1 = cv2.inRange(hsv_img, self.baixo_vermelho1, self.alto_vermelho1) #FAZ UMA VARREDURA NA MATRIZ MARCANDO OS PIXELS DENTRO DO LIMITE COMO BRANCOS E OS FORA COMO PRETOS
-        mascara2 = cv2.inRange(hsv_img, self.baixo_vermelho2, self.alto_vermelho2) #FAZ UMA VARREDURA NA MATRIZ MARCANDO OS PIXELS DENTRO DO LIMITE COMO BRANCOS E OS FORA COMO PRETOS
-        mascara = mascara1 + mascara2
+        v = np.median(blur)
+        lower_thresh = int(max(0, (1.0 - 0.33) * v))
+        upper_thresh = int(min(255, (1.0 + 0.33) * v))
+        edges = cv2.Canny(blur, lower_thresh, upper_thresh)
 
-        #OPERAÇÕES MORFOLÓGICAS (POLIMENTO)
-        kernel_dilatacao = np.ones((3, 3), np.uint8) # DILATAÇÃO SUAVE NO KERNEL
-        kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (21,21)) #CRIAÇÃO DO KERNEL
-        mascara_limpa = cv2.morphologyEx(mascara, cv2.MORPH_OPEN, kernel) #APLICAR OPENING PARA REMOVER RUÍDO DO FUNDO
-        mascara_expandida = cv2.dilate(mascara_limpa, kernel_dilatacao, iterations=2) # EXPANSÃO PARA OBTER BORDA PERDIDA
-        mascara_final = cv2.morphologyEx(mascara_expandida, cv2.MORPH_CLOSE, kernel) #APLICAR CLOSING PARA TAPAR BURACOS DENTRO DO TOMATE
+        edges_dilated = cv2.dilate(edges, self.kernel_dilate, iterations=1)
+        mascara_fechada = cv2.morphologyEx(edges_dilated, cv2.MORPH_CLOSE, self.kernel_close)
 
-        #img_recortada = cv2.bitwise_and(img, img, mask=mascara_final) #COMPARA A IMAGEM ORIGINAL COM A MASCARA CRIADA
-        #cv2.imshow("Verificacao", img_recortada) #JANELA DE EXIBIÇÃO DA IMAGEM
-        #cv2.waitKey(0) #MANTÉM A JANELA ABERTA ATÉ QUE UMA TECLA SEJA PRECIONADA
-        #cv2.destroyAllWindows() #GARANTE QUE AS JANELAS NÃO FIQUEM TRAVADAS NO SISTEMA
-        return mascara_final
+        h, w = mascara_fechada.shape
+        mask_floodfill = mascara_fechada.copy()
+        mask_padding = np.zeros((h + 2, w + 2), np.uint8)
+        cv2.floodFill(mask_floodfill, mask_padding, (0, 0), 255)
+        mascara_solida = mascara_fechada | cv2.bitwise_not(mask_floodfill)
+
+        return mascara_solida
 
     def buscarContornos(self, img, mascara):
-        contornos, hierarquia = cv2.findContours(mascara, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE) #RETR_EXTERNAL (FOCO NA BORDA EXTERNA), CHAIN_APPROX_SIMPLE (SALVA APENAS OS PONTOS ESSENCIAIS DA BORDA)
-        maior_contorno = max(contornos, key=cv2.contourArea) #BUSCA O MAIOR CONTORNO OBTIDO
-        (x, y), raio_px = cv2.minEnclosingCircle(maior_contorno) #MENOR CÍRCULO QUE CONSEGUE COLORIR O CONTORNO COMPLETO
-        x, y, w_px, h_px = cv2.boundingRect(maior_contorno)
-        #cnt = cv2.drawContours(img, contornos, -1, (0, 255, 0), 2) #VERIFICAR SE O TOMATE ESTÁ SENDO "ENXERGADO" POR COMPLETO
-        cnt = cv2.rectangle(img, (x, y), (x + w_px, y + h_px), (255, 0, 0), 2)
+        contornos, _ = cv2.findContours(mascara, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
-        return maior_contorno, x, y, w_px, h_px
+        contornos_validos = [c for c in contornos if cv2.contourArea(c) > self.area_minima_px]
 
-    def calibracao(self, diametro_real_referencia_mm, diametro_px_referencia):
-        ppm = diametro_px_referencia / diametro_real_referencia_mm #PIXELS POR MM
+        if len(contornos_validos) < 2:
+            print("Erro: Nao foram encontrados pelo menos dois objetos validos")
+            return None, None, 0, 0, 0, img.copy()
+            
+        contornos_ordenados = sorted(contornos_validos, key=cv2.contourArea, reverse=True)
+        maior_contorno = contornos_ordenados[0]
+        referencia_contorno = contornos_ordenados[1]
+
+        x, y, w_box, h_box = cv2.boundingRect(maior_contorno)
+
+        img_debug = img.copy()
+        cv2.drawContours(img_debug, [maior_contorno], -1, (0, 255, 0), 2)
+        cv2.drawContours(img_debug, [referencia_contorno], -1, (0, 0, 255), 2)
+
+        return maior_contorno, referencia_contorno, x, y, h_box, img_debug
+
+    def calibracao(self, diametro_real_referencia_mm, referencia_contorno):
+        area_px = cv2.contourArea(referencia_contorno)
+        
+        raio_px = math.sqrt(area_px / math.pi)
+        diametro_px = raio_px * 2
+        
+        if diametro_real_referencia_mm <= 0:
+            raise ValueError(
+                "diametro_real_referencia_mm deve ser maior que zero "
+                f"(recebido: {diametro_real_referencia_mm})."
+            )
+        if diametro_px <= 0:
+            raise ValueError(
+                "O contorno de referência produziu diâmetro em pixels <= 0; "
+                "a segmentação da referência provavelmente falhou."
+            )
+
+        ppm = diametro_px / diametro_real_referencia_mm
         return ppm
 
-    def propFisicas(self, mascara, x, y, w_px, h_px, ppm):
-        largura_cm = (w_px / ppm) / 10
-        altura_cm = (h_px / ppm) / 10
+    def _alinhar_fruto(self, mascara, maior_contorno):
+        (cx, cy), (w_rect, h_rect), angulo = cv2.minAreaRect(maior_contorno)
 
-        D1 = largura_cm
-        D2 = largura_cm
+        correcao = angulo % 90
+        if correcao > 45:
+            correcao -= 90
+
+        h_img, w_img = mascara.shape
+        M = cv2.getRotationMatrix2D((cx, cy), correcao, 1.0)
+
+        mascara_fruto_isolada = np.zeros_like(mascara)
+        cv2.drawContours(mascara_fruto_isolada, [maior_contorno], -1, 255, thickness=cv2.FILLED)
+        mascara_rotacionada = cv2.warpAffine(mascara_fruto_isolada, M, (w_img, h_img))
+
+        contornos_rot, _ = cv2.findContours(mascara_rotacionada, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        if not contornos_rot:
+            return mascara_fruto_isolada, maior_contorno
+
+        contorno_alinhado = max(contornos_rot, key=cv2.contourArea)
+        return mascara_rotacionada, contorno_alinhado
+
+    def propFisicas(self, mascara, maior_contorno, x, y, h_box, ppm):
+        if ppm <= 0:
+            raise ValueError(f"ppm deve ser maior que zero (recebido: {ppm}).")
+            
+        rect = cv2.minAreaRect(maior_contorno)
+        box = cv2.boxPoints(rect)
+        
+        p0, p1, p2 = box[0], box[1], box[2]
+        
+        v1 = p1 - p0
+        v2 = p2 - p1
+        
+        dist1 = math.hypot(v1[0], v1[1])
+        dist2 = math.hypot(v2[0], v2[1])
+        
+        if abs(v1[1]) > abs(v1[0]):
+            h_box_subpixel = dist1
+            w_box_subpixel = dist2
+        else:
+            h_box_subpixel = dist2
+            w_box_subpixel = dist1
+            
+        largura_mm = (w_box_subpixel / ppm)
+        altura_mm = (h_box_subpixel / ppm)
+
+        largura_cm = largura_mm / 10
+        altura_cm = altura_mm / 10
+
+        D = largura_cm
         H = altura_cm
 
-        # PROPRIEDADES FÍSICAS AGRONÔMICAS
-        Dg = (H * D1 * D2) ** (1/3)
-        Da = (H * D1 * D2) / 3
-        Es = Dg / H
-        As = math.pi * (Dg ** 2)
+        Dg = (H * (D**2)) ** (1/3)
+        Da = (H + D + D) / 3
+        
+        maior_dimensao = max(H, D)
+        Es = Dg / maior_dimensao
+        As = math.pi * (Dg**2)
+
+        mascara_fruto, contorno_alinhado = self._alinhar_fruto(mascara, maior_contorno)
+        x_rot, y_rot, w_box_int, h_box_int = cv2.boundingRect(contorno_alinhado)       
 
         # CÁLCULO DO VOLUME
-        volume_total = 0
-        altura_pixel_cm = (1 / ppm) / 10 # Altura de cada "fatia" (1 pixel) em cm
+        volume_total_mm3 = 0
+        altura_pixel_mm = (1 / ppm)
 
-        for linha in range(y, y + h_px - 1):
-            # encontrar onde o tomate começa e termina nesta linha horizontal
-            pixels_atual = np.where(mascara[linha, x:x+w_px] == 255)[0]
-            pixels_prox = np.where(mascara[linha+1, x:x+w_px] == 255)[0]
+        for linha in range(y_rot, y_rot + h_box_int - 1):
+            idx_atual = np.nonzero(mascara_fruto[linha, :])[0]
+            idx_prox = np.nonzero(mascara_fruto[linha + 1, :])[0]
 
-            # Se houver tomate nas duas linhas, calculamos o disco
-            if len(pixels_atual) > 0 and len(pixels_prox) > 0:
-                # O diâmetro do disco é a distância do primeiro ao último pixel branco
-                diam_px_atual = pixels_atual[-1] - pixels_atual[0]
-                diam_px_prox = pixels_prox[-1] - pixels_prox[0]
+            if idx_atual.size > 0 and idx_prox.size > 0:
+                diam_px_atual = idx_atual[-1] - idx_atual[0] + 1
+                diam_px_prox = idx_prox[-1] - idx_prox[0] + 1
 
-                # Converte os diâmetros da fatia para cm
-                diam_cm_atual = (diam_px_atual / ppm) / 10
-                diam_cm_prox = (diam_px_prox / ppm) / 10
+                diam_mm_atual = diam_px_atual / ppm
+                diam_mm_prox = diam_px_prox / ppm
 
-                # Áreas dos círculos do disco atual e do próximo
-                area1 = math.pi * ((diam_cm_atual / 2) ** 2)
-                area2 = math.pi * ((diam_cm_prox / 2) ** 2)
+                area1 = math.pi * ((diam_mm_atual / 2) ** 2)
+                area2 = math.pi * ((diam_mm_prox / 2) ** 2)
 
-                # Média da área vezes a altura da fatia (Integração)
                 area_media = (area1 + area2) / 2
-                volume_total += area_media * altura_pixel_cm
+                volume_total_mm3 += area_media * altura_pixel_mm
+
+        volume_final_cm3 = volume_total_mm3 / 1000
 
         return {
             "Largura_cm": largura_cm,
@@ -96,10 +165,5 @@ class AnaliseTomate:
             "Diam_Aritmetico": Da,
             "Esfericidade": Es,
             "Area_Superficial": As,
-            "Volume_cm3": volume_total
+            "Volume_cm3": volume_final_cm3
         }
-
-
-
-
-

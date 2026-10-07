@@ -3,24 +3,42 @@
 
     BoxLayout:
         orientation: 'vertical'
+        
+        Widget:
+            size_hint_y: 0.06
 
-        BoxLayout:
+        AnchorLayout:
             id: camera_container
-
+            size_hint_y: 0.76
+            anchor_x: 'center'
+            anchor_y: 'center'
+            
+        Label:
+            id: label_aviso_sensor
+            text: "Verificando nivelamento..."
+            size_hint_y: 0.06
+            bold: True
+            
         BoxLayout:
             orientation: 'horizontal'
-            size_hint_y: 0.15
+            size_hint_y: 0.12
+            padding: 10
+            spacing: 10
 
             Button:
                 text: "Cancelar"
-                background_color: 1, 0, 0, 0.8
-                on_release: app.mudar_tela("homepage")
+                font_size: '16sp'
+                bold: True
+                background_normal: ''
+                background_color: 0.8, 0.2, 0.2, 1
+                on_release: app.mudar_tela("homepage", True)
 
             Button:
+                id: btn_analisar
                 text: "Analisar"
-                background_color: 0, 0.8, 0, 1
+                font_size: '16sp'
+                bold: True
+                background_normal: ''
+                background_color: 0.18, 0.49, 0.19, 1
                 on_release: root.capturar_e_analisar() # A função que chama as propriedades físicas
-            Button:
-                text: "Baixar CSV"
-                background_color: 0.2, 0.6, 1, 1 
-                on_release: root.baixar_csv()
+                

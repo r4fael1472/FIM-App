@@ -1,23 +1,5 @@
-<MenuTextButton@ButtonBehavior+Label>:
-    font_size: '18sp'
-    color: (0.18, 0.49, 0.19, 1) if self.state == 'down' else (0, 0, 0, 1)
-    size_hint_y: None
-    height: dp(50)
-    halign: 'center'
-    valign: 'middle'
-    
-<Separator@Widget>:
-    size_hint_y: None
-    height: dp(1)
-    canvas:
-        Color:
-            rgba: 0, 0, 0, 1
-        Rectangle:
-            pos: self.x + dp(40), self.y
-            size: self.width - dp(80), self.height
-
-<HomePage>:
-    name: 'homepage'
+<DownloadPage>:
+    name: 'downloadpage'
 
     BoxLayout:
         orientation: 'vertical'
@@ -25,7 +7,7 @@
 
         canvas.before:
             Color:
-                rgba: 0.95, 0.96, 0.96, 1  
+                rgba: 0.95, 0.96, 0.96, 1
             Rectangle:
                 pos: self.pos
                 size: self.size
@@ -39,12 +21,11 @@
 
             canvas.before:
                 Color:
-                    rgba: 0.38, 0.55, 0.28, 1  
+                    rgba: 0.38, 0.55, 0.28, 1 
                 Rectangle:
                     pos: self.pos
                     size: self.size
 
-            
             BoxLayout:
                 orientation: 'vertical'
                 alignment: 'center'
@@ -69,41 +50,46 @@
 
         BoxLayout:
             orientation: 'vertical'
-            padding: dp(20)
-            spacing: dp(10)
-            size_hint_y: 0.8
-            pos_hint: {'center_x': 0.5, 'center_y': 0.5}
+            padding: dp(30)
+            spacing: dp(20)
+            size_hint_y: 0.79
             
             Widget:
-                size_hint_y: 0.05
+                size_hint_y: 0.1
                 
-            Image:
-                source: 'imagens/icone_app_tcc.png'
+            Label:
+                text: "Exportação de Dados"
+                font_size: '22sp'
+                bold: True
+                color: 0.18, 0.49, 0.19, 1
+                size_hint_y: None
+                height: dp(40)
+                
+            Label:
+                id: label_status
+                text: "Verificando planilha..."
+                font_size: '16sp'
+                halign: 'center'
+                valign: 'middle'
+                color: 0.2, 0.2, 0.2, 1
+                size_hint_y: None
+                height: dp(80)
+                text_size: self.width, None
+                
+            Button:
+                id: btn_baixar
+                text: "Baixar Planilha (.csv)"
                 size_hint: None, None
-                size: dp(120), dp(120)
+                size: dp(220), dp(50)
                 pos_hint: {'center_x': 0.5}
+                background_normal: ''
+                background_color: 0.18, 0.49, 0.19, 1
+                bold: True
+                disabled: True
+                on_release: root.baixar_csv()
                 
             Widget:
-                size_hint_y: 0.08
-                
-            MenuTextButton:
-                text: "Definir Calibração"
-                on_release: app.mudar_tela("calibracaopage")
-            
-            Separator:
-            
-            MenuTextButton:
-                text: "Analisar por Câmera"
-                on_release: app.mudar_tela("camerapage", True)
-                
-            Separator:
-            
-            MenuTextButton:
-                text: "Iniciar Nova Coleta"
-                on_release: root.iniciar_nova_coleta()
-                
-            Widget:
-                size_hint_y: 0.5
+                size_hint_y: 0.4
 
 
         BoxLayout:
@@ -113,12 +99,11 @@
 
             canvas.before:
                 Color:
-                    rgba: 0.38, 0.55, 0.28, 1  
+                    rgba: 0.38, 0.55, 0.28, 1 
                 Rectangle:
                     pos: self.pos
                     size: self.size
 
-            
             Button:
                 background_normal: ''
                 background_color: 0, 0, 0, 0
@@ -136,8 +121,6 @@
                         allow_stretch: True
                         keep_ratio: True
 
-                    
-            
             Button:
                 background_normal: ''
                 background_color: 0, 0, 0, 0
@@ -155,9 +138,6 @@
                         allow_stretch: True
                         keep_ratio: True
 
-                    
-
-            
             Button:
                 background_normal: ''
                 background_color: 0, 0, 0, 0
@@ -174,5 +154,3 @@
                         size_hint_y: 0.4
                         allow_stretch: True
                         keep_ratio: True
-
-                  
