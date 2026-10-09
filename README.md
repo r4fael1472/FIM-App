@@ -18,6 +18,6 @@ Este projeto é fruto do Trabalho de Conclusão de Curso (TCC) em Sistemas de In
 
 ## Como instalar e testar no Android
 Não é necessário compilar o código para testar a aplicação no seu smartphone.
-1. Aceda à secção [Releases](../../releases) deste repositório.
+1. Acesse a aba [Releases](../../releases) desse repositório.
 2. Descarregue o ficheiro `FIM-App.apk`.
 3. Instale no seu dispositivo Android (poderá ser necessário autorizar a instalação de aplicações de fontes desconhecidas).
